@@ -1,0 +1,25 @@
+{
+  "name": "hubot-groupme",
+  "version": "0.0.1",
+  "author": "Adam Edgett <adam.edgett@gmail.com"
+  "description": "GroupMe adapter for Hubot",
+  "keywords": ["hubot", "groupme", "adapter"],
+  "licenses": [{
+    "type": "MIT"
+  }],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AdamEdgett/hubot-groupme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AdamEdgett/hubot-groupme/issues"
+  },
+  "main": "./src/groupme.coffee",
+  "engine": "node > 0.8.0 < 0.11.0",
+  "dependencies": {
+
+  },
+  "devDependencies": {
+    "coffee-script": "1.1.3"
+  }
+}
