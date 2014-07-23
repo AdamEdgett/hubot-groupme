@@ -4,7 +4,7 @@ Groupme adapter for hubot
 
 ### Source
 
-Forked from cdzombak/hubot-groupme-http
+Forked from [cdzombak/hubot-groupme-http](https://github.com/cdzombak/hubot-groupme-http)
 to support the updated Groupme V3 API
 
 ## Setup
