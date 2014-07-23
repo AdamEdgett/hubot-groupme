@@ -1,7 +1,7 @@
 {
   "name": "hubot-groupme",
   "version": "0.0.1",
-  "author": "Adam Edgett <adam.edgett@gmail.com"
+  "author": "Adam Edgett <adam.edgett@gmail.com>",
   "description": "GroupMe adapter for Hubot",
   "keywords": ["hubot", "groupme", "adapter"],
   "licenses": [{
