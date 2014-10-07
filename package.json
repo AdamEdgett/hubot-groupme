@@ -1,6 +1,6 @@
 {
   "name": "hubot-groupme",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Adam Edgett <adam.edgett@gmail.com>",
   "description": "GroupMe adapter for Hubot",
   "keywords": ["hubot", "groupme", "adapter"],
@@ -17,9 +17,6 @@
   "main": "./src/groupme.coffee",
   "engine": "node > 0.8.0 < 0.11.0",
   "dependencies": {
-
-  },
-  "devDependencies": {
-    "coffee-script": "1.1.3"
+    "coffee-script": "1.6.3"
   }
 }

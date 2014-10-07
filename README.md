@@ -2,11 +2,10 @@
 
 Groupme adapter for hubot
 
-## Setup
+## Installation
 
-Add this repo as a dependency of your Hubot repo: `"hubot-groupme": "git://github.com/adamedgett/hubot-groupme.git#master"`
-
-And `npm install`
+In your hubot repo, run:
+`npm install --save hubot-groupme`
 
 ## Running
 To use this adapter run hubot with the adapter argument
