@@ -10,9 +10,11 @@ In your hubot repo, run:
 
 ## Running
 To use this adapter run hubot with the adapter argument
+
 `./bin/hubot -a groupme`
 
 Or set the adapter environment variable
+
 `export HUBOT_ADAPTER="groupme"`
 
 ### Configuration
