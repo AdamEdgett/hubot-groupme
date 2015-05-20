@@ -66,37 +66,34 @@ class GroupMeBot extends Adapter
       @send envelope, str
 
   run: ->
-    @room_ids = process.env.HUBOT_GROUPME_ROOM_IDS.split(',')
+    @room_id = process.env.HUBOT_GROUPME_ROOM_ID
     @token    = process.env.HUBOT_GROUPME_TOKEN
     @bot_id   = process.env.HUBOT_GROUPME_BOT_ID
 
-    @newest_timestamp = { }
-    for room in @room_ids
-      @newest_timestamp[room] = 0
+    @newest_timestamp = 0
 
     @timer = setInterval =>
-      @room_ids.forEach (room) =>
-        @getMessages room, (messages) =>
-          messages = messages.sort (a, b) ->
-            -1 if a.created_at < b.created_at
-            1 if a.created_at > b.created_at
-            0
+      @getMessages @room_id, (messages) =>
+        messages = messages.sort (a, b) ->
+          -1 if a.created_at < b.created_at
+          1 if a.created_at > b.created_at
+          0
 
-          # this is a hack, but basically, just assume we get messages in linear time
-          # I don't want to RE GroupMe's web push API right now.
-          for msg in messages
-            if msg.created_at <= @newest_timestamp[room]
-              continue
+        # this is a hack, but basically, just assume we get messages in linear time
+        # I don't want to RE GroupMe's web push API right now.
+        for msg in messages
+          if msg.created_at <= @newest_timestamp
+            continue
 
-            @newest_timestamp[room] = msg.created_at
+          @newest_timestamp = msg.created_at
 
-            # note that the name assigned to your robot in GroupMe must exactly match the name passed to Hubot
-            if msg.text and (msg.created_at * 1000) > new Date().getTime() - 6*1000 and msg.name != @robot.name
-              console.log "[RECEIVED in #{room}] #{msg.name}: #{msg.text}"
-              envelope =
-                user: msg.name
-                room: room
-              @receive new TextMessage envelope, msg.text
+          # note that the name assigned to your robot in GroupMe must exactly match the name passed to Hubot
+          if msg.text and (msg.created_at * 1000) > new Date().getTime() - 6*1000 and msg.name != @robot.name
+            console.log "[RECEIVED in #{@room_id}] #{msg.name}: #{msg.text}"
+            envelope =
+              user: msg.name
+              room: @room_id
+            @receive new TextMessage envelope, msg.text
     , 2000
 
     @emit 'connected'

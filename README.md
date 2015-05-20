@@ -12,11 +12,14 @@ In your hubot repo, run:
 To use this adapter run hubot with the adapter argument
 `./bin/hubot -a groupme`
 
+Or set the adapter environment variable
+`export HUBOT_ADAPTER="groupme"`
+
 ### Configuration
 
-Two environment variables must be set:
+Three environment variables must be set:
 
-* `HUBOT_GROUPME_ROOM_IDS`: a string of GroupMe chat room IDs, separated by commas. ex: `"111222,333444"`
+* `HUBOT_GROUPME_ROOM_ID`: a GroupMe chat room ID. ex: `"111222"`
 * `HUBOT_GROUPME_TOKEN`: a GroupMe access token. ex: `"mFKYryFoTjdPkKGd9shvjwnMunSSOLvhs44498Fc"`
 * `HUBOT_GROUPME_BOT_ID`: a GroupMe bot ID token. ex: `"66J7ZcVwlRTqEQvdSLNnmV69wV"`
 
