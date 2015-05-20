@@ -1,4 +1,5 @@
 # Hubot Groupme
+[![npm](https://img.shields.io/npm/v/hubot-groupme.svg)](https://www.npmjs.com/package/hubot-groupme)
 
 Groupme adapter for hubot
 
