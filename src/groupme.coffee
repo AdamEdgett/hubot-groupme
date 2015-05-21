@@ -9,8 +9,8 @@ class GroupMeBot extends Adapter
   # strings  - One or more Strings for each message to send.
   send: (envelope, strings...) ->
     strings.forEach (str) =>
-      if str.length > 450
-        substrings = str.match /.{1,430}/g
+      if str.length > 999
+        substrings = str.match /.{1,950}/g
         for text, index in substrings
           @sendMessage envelope.room, "(#{index}/#{substrings.length}) #{text}"
       else
@@ -54,6 +54,15 @@ class GroupMeBot extends Adapter
     strings.forEach (str) =>
       @send envelope, "#{envelope.user}: #{str}"
 
+  userFromId: (id, data) ->
+    # hubot < 2.5.0: @userForId
+    # hubot >=2.5.0: @robot.brain.userForId
+    @robot.brain?.userForId?(id, data) || @userForId(id, data)
+
+  changeUserNick: (id, newNick) ->
+    if id of @robot.brain.data.users
+      @robot.brain.data.users[id].name = newNick
+	  
   # Sets a topic on the room
   #
   # envelope - A Object with message, room and user details.
@@ -96,12 +105,44 @@ class GroupMeBot extends Adapter
             @receive new TextMessage envelope, msg.text
     , 2000
 
+	@getUsers()
+	
     @emit 'connected'
 
   # Shuts the bot down
   close: ->
     clearInterval(@timer)
 
+	
+  # get GroupMe users in Room/Group
+  getUsers: ->
+	options =
+      agent: false
+      host: 'api.groupme.com'
+      port: 443
+      method: 'POST'
+      path: "/v3/groups/" + process.env.HUBOT_GROUPME_ROOM_ID
+      headers:
+        'Content-Type': 'application/json',
+        'X-Access-Token': @token
+
+    request = HTTPS.request options, (response) ->
+      data = ''
+      response.on 'data', (chunk)-> data += chunk
+      response.on 'end', ->
+        console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
+		if data
+          json = JSON.parse(data)
+		  for user in jsondata.members
+            data =
+              id: user.user_id
+              name: user.nickname
+            savedUser = @userFromId user.id, data
+            if savedUser.name != data.name
+              @changeUserNick(savedUser.id, data.name)
+    request.end()
+	
+		
   # Gets messages from the GroupMe room
   # Calls the callback with the latest 20 messages on completion.
   #
