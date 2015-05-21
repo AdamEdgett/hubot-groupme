@@ -52,7 +52,7 @@ class GroupMeBot extends Adapter
   # strings - One or more Strings for each reply to send.
   reply: (envelope, strings...) ->
     strings.forEach (str) =>
-      @send envelope, "#{envelope.user}: #{str}"
+      @send envelope, "#{envelope.user.name}: #{str}"
 
   # Sets a topic on the room
   #
@@ -90,10 +90,9 @@ class GroupMeBot extends Adapter
           # note that the name assigned to your robot in GroupMe must exactly match the name passed to Hubot
           if msg.text and (msg.created_at * 1000) > new Date().getTime() - 6*1000 and msg.name != @robot.name
             console.log "[RECEIVED in #{@room_id}] #{msg.name}: #{msg.text}"
-            envelope =
-              user: msg.name
-              room: @room_id
-            @receive new TextMessage envelope, msg.text
+            user = @robot.brain.userForId(msg.user_id)
+            user.room = @room_id
+            @receive new TextMessage user, msg.text, msg.id
     , 2000
 
     @getUsers @room_id, (users) =>
