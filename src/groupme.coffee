@@ -54,15 +54,6 @@ class GroupMeBot extends Adapter
     strings.forEach (str) =>
       @send envelope, "#{envelope.user}: #{str}"
 
-  userFromId: (id, data) ->
-    # hubot < 2.5.0: @userForId
-    # hubot >=2.5.0: @robot.brain.userForId
-    @robot.brain?.userForId?(id, data) || @userForId(id, data)
-
-  changeUserNick: (id, newNick) ->
-    if id of @robot.brain.data.users
-      @robot.brain.data.users[id].name = newNick
-	  
   # Sets a topic on the room
   #
   # envelope - A Object with message, room and user details.
@@ -105,23 +96,32 @@ class GroupMeBot extends Adapter
             @receive new TextMessage envelope, msg.text
     , 2000
 
-	@getUsers()
-	
+    @getUsers @room_id, (users) =>
+      for user in users
+        user.name = user.nickname
+        if user.user_id of @robot.brain.data.users
+          oldUser = @robot.brain.data.users[user.user_id]
+          for key, value of oldUser
+            unless key of user
+              user[key] = value
+          delete @robot.brain.data.users[user.user_id]
+        @robot.brain.userForId(user.user_id, user)
+
+
     @emit 'connected'
 
   # Shuts the bot down
   close: ->
     clearInterval(@timer)
 
-	
   # get GroupMe users in Room/Group
-  getUsers: ->
-	options =
+  getUsers: (room_id, cb) ->
+    options =
       agent: false
       host: 'api.groupme.com'
       port: 443
-      method: 'POST'
-      path: "/v3/groups/" + process.env.HUBOT_GROUPME_ROOM_ID
+      method: 'GET'
+      path: "/v3/groups/#{room_id}"
       headers:
         'Content-Type': 'application/json',
         'X-Access-Token': @token
@@ -131,18 +131,12 @@ class GroupMeBot extends Adapter
       response.on 'data', (chunk)-> data += chunk
       response.on 'end', ->
         console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
-		if data
+        if data
           json = JSON.parse(data)
-		  for user in jsondata.members
-            data =
-              id: user.user_id
-              name: user.nickname
-            savedUser = @userFromId user.id, data
-            if savedUser.name != data.name
-              @changeUserNick(savedUser.id, data.name)
+          cb(json.response.members)
     request.end()
-	
-		
+
+
   # Gets messages from the GroupMe room
   # Calls the callback with the latest 20 messages on completion.
   #
