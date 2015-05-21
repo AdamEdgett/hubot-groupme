@@ -106,6 +106,10 @@ class GroupMeBot extends Adapter
           delete @robot.brain.data.users[user.user_id]
         @robot.brain.userForId(user.user_id, user)
 
+    @getBots (bots) =>
+      bot = (bot for bot in bots when bot.bot_id == @bot_id)[0]
+      @robot.name = bot.name
+
 
     @emit 'connected'
 
@@ -133,6 +137,27 @@ class GroupMeBot extends Adapter
         if data
           json = JSON.parse(data)
           cb(json.response.members)
+    request.end()
+
+  getBots: (cb) ->
+    options =
+      agent: false
+      host: 'api.groupme.com'
+      port: 443
+      method: 'GET'
+      path: '/v3/bots'
+      headers:
+        'Content-Type': 'application/json',
+        'X-Access-Token': @token
+
+    request = HTTPS.request options, (response) ->
+      data = ''
+      response.on 'data', (chunk)-> data += chunk
+      response.on 'end', ->
+        console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
+        if data
+          json = JSON.parse(data)
+          cb(json.response)
     request.end()
 
 
