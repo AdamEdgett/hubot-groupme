@@ -9,8 +9,8 @@ class GroupMeBot extends Adapter
   # strings  - One or more Strings for each message to send.
   send: (envelope, strings...) ->
     strings.forEach (str) =>
-      if str.length > 450
-        substrings = str.match /.{1,430}/g
+      if str.length > 999
+        substrings = str.match /.{1,950}/g
         for text, index in substrings
           @sendMessage envelope.room, "(#{index}/#{substrings.length}) #{text}"
       else
@@ -52,7 +52,7 @@ class GroupMeBot extends Adapter
   # strings - One or more Strings for each reply to send.
   reply: (envelope, strings...) ->
     strings.forEach (str) =>
-      @send envelope, "#{envelope.user}: #{str}"
+      @send envelope, "#{envelope.user.name}: #{str}"
 
   # Sets a topic on the room
   #
@@ -90,17 +90,51 @@ class GroupMeBot extends Adapter
           # note that the name assigned to your robot in GroupMe must exactly match the name passed to Hubot
           if msg.text and (msg.created_at * 1000) > new Date().getTime() - 6*1000 and msg.name != @robot.name
             console.log "[RECEIVED in #{@room_id}] #{msg.name}: #{msg.text}"
-            envelope =
-              user: msg.name
-              room: @room_id
-            @receive new TextMessage envelope, msg.text
+            user = @robot.brain.userForId(msg.user_id)
+            user.room = @room_id
+            @receive new TextMessage user, msg.text, msg.id
     , 2000
+
+    @getUsers @room_id, (users) =>
+      for user in users
+        user.name = user.nickname
+        if user.user_id of @robot.brain.data.users
+          oldUser = @robot.brain.data.users[user.user_id]
+          for key, value of oldUser
+            unless key of user
+              user[key] = value
+          delete @robot.brain.data.users[user.user_id]
+        @robot.brain.userForId(user.user_id, user)
+
 
     @emit 'connected'
 
   # Shuts the bot down
   close: ->
     clearInterval(@timer)
+
+  # get GroupMe users in Room/Group
+  getUsers: (room_id, cb) ->
+    options =
+      agent: false
+      host: 'api.groupme.com'
+      port: 443
+      method: 'GET'
+      path: "/v3/groups/#{room_id}"
+      headers:
+        'Content-Type': 'application/json',
+        'X-Access-Token': @token
+
+    request = HTTPS.request options, (response) ->
+      data = ''
+      response.on 'data', (chunk)-> data += chunk
+      response.on 'end', ->
+        console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
+        if data
+          json = JSON.parse(data)
+          cb(json.response.members)
+    request.end()
+
 
   # Gets messages from the GroupMe room
   # Calls the callback with the latest 20 messages on completion.
