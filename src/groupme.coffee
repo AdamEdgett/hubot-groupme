@@ -70,8 +70,8 @@ class GroupMeBot extends Adapter
     @token    = process.env.HUBOT_GROUPME_TOKEN
     @bot_id   = process.env.HUBOT_GROUPME_BOT_ID
 
-    @getUsers @room_id, (users) =>
-      for user in users
+    @getUsers @room_id, (response) =>
+      for user in response.members
         user.name = user.nickname
         if user.user_id of @robot.brain.data.users
           oldUser = @robot.brain.data.users[user.user_id]
@@ -88,8 +88,8 @@ class GroupMeBot extends Adapter
     @newest_timestamp = 0
 
     @timer = setInterval =>
-      @getMessages @room_id, (messages) =>
-        messages = messages.sort (a, b) ->
+      @getMessages @room_id, (response) =>
+        messages = response.messages.sort (a, b) ->
           -1 if a.created_at < b.created_at
           1 if a.created_at > b.created_at
           0
@@ -118,34 +118,23 @@ class GroupMeBot extends Adapter
 
   # Gets users in the GroupMe room
   getUsers: (room_id, cb) ->
-    options =
-      agent: false
-      host: 'api.groupme.com'
-      port: 443
-      method: 'GET'
-      path: "/v3/groups/#{room_id}"
-      headers:
-        'Content-Type': 'application/json',
-        'X-Access-Token': @token
-
-    request = HTTPS.request options, (response) ->
-      data = ''
-      response.on 'data', (chunk)-> data += chunk
-      response.on 'end', ->
-        console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
-        if data
-          json = JSON.parse(data)
-          cb(json.response.members)
-    request.end()
+    @get("/v3/groups/#{room_id}", cb)
 
   # Gets bots for the GroupMe token
   getBots: (cb) ->
+    @get('/v3/bots', cb)
+
+  # Gets messages from the GroupMe room
+  getMessages: (room_id, cb) =>
+    @get("/v3/groups/#{room_id}/messages", cb)
+
+  get: (path, cb) =>
     options =
       agent: false
       host: 'api.groupme.com'
       port: 443
       method: 'GET'
-      path: '/v3/bots'
+      path: path
       headers:
         'Content-Type': 'application/json',
         'X-Access-Token': @token
@@ -154,32 +143,11 @@ class GroupMeBot extends Adapter
       data = ''
       response.on 'data', (chunk)-> data += chunk
       response.on 'end', ->
-        console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
+        if process.env.HUBOT_LOG_LEVEL == "debug"
+          console.log "[GROUPME RESPONSE] #{response.statusCode} #{data}"
         if data
           json = JSON.parse(data)
           cb(json.response)
-    request.end()
-
-
-  # Gets messages from the GroupMe room
-  getMessages: (room_id, cb) =>
-    options =
-      agent: false
-      host: 'api.groupme.com'
-      port: 443
-      method: 'GET'
-      path: "/v3/groups/#{room_id}/messages"
-      headers:
-        'Content-Type': 'application/json',
-        'X-Access-Token': @token
-
-    request = HTTPS.request options, (response) =>
-      data = ''
-      response.on 'data', (chunk) -> data += chunk
-      response.on 'end', =>
-        if data
-          json = JSON.parse(data)
-          cb(json.response.messages)
     request.end()
 
 exports.use = (robot) ->
