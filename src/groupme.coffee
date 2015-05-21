@@ -70,6 +70,21 @@ class GroupMeBot extends Adapter
     @token    = process.env.HUBOT_GROUPME_TOKEN
     @bot_id   = process.env.HUBOT_GROUPME_BOT_ID
 
+    @getUsers @room_id, (users) =>
+      for user in users
+        user.name = user.nickname
+        if user.user_id of @robot.brain.data.users
+          oldUser = @robot.brain.data.users[user.user_id]
+          for key, value of oldUser
+            unless key of user
+              user[key] = value
+          delete @robot.brain.data.users[user.user_id]
+        @robot.brain.userForId(user.user_id, user)
+
+    @getBots (bots) =>
+      bot = (bot for bot in bots when bot.bot_id == @bot_id)[0]
+      @robot.name = bot.name
+
     @newest_timestamp = 0
 
     @timer = setInterval =>
@@ -95,29 +110,13 @@ class GroupMeBot extends Adapter
             @receive new TextMessage user, msg.text, msg.id
     , 2000
 
-    @getUsers @room_id, (users) =>
-      for user in users
-        user.name = user.nickname
-        if user.user_id of @robot.brain.data.users
-          oldUser = @robot.brain.data.users[user.user_id]
-          for key, value of oldUser
-            unless key of user
-              user[key] = value
-          delete @robot.brain.data.users[user.user_id]
-        @robot.brain.userForId(user.user_id, user)
-
-    @getBots (bots) =>
-      bot = (bot for bot in bots when bot.bot_id == @bot_id)[0]
-      @robot.name = bot.name
-
-
     @emit 'connected'
 
   # Shuts the bot down
   close: ->
     clearInterval(@timer)
 
-  # get GroupMe users in Room/Group
+  # Gets users in the GroupMe room
   getUsers: (room_id, cb) ->
     options =
       agent: false
@@ -139,6 +138,7 @@ class GroupMeBot extends Adapter
           cb(json.response.members)
     request.end()
 
+  # Gets bots for the GroupMe token
   getBots: (cb) ->
     options =
       agent: false
@@ -162,10 +162,6 @@ class GroupMeBot extends Adapter
 
 
   # Gets messages from the GroupMe room
-  # Calls the callback with the latest 20 messages on completion.
-  #
-  # room_id - ID of room to get messages for
-  # cb - Callback which takes an array of GroupMe message objects
   getMessages: (room_id, cb) =>
     options =
       agent: false
