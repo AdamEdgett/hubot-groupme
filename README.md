@@ -19,7 +19,7 @@ Or set the adapter environment variable
 
 ### Configuration
 
-Three environment variables must be set:
+Three environment variables must be set. You can get these by creating a bot on the [GroupMe API bot page](https://dev.groupme.com/bots)
 
 * `HUBOT_GROUPME_ROOM_ID`: a GroupMe chat room ID. ex: `"111222"`
 * `HUBOT_GROUPME_TOKEN`: a GroupMe access token. ex: `"mFKYryFoTjdPkKGd9shvjwnMunSSOLvhs44498Fc"`
