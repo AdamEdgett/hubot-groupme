@@ -85,22 +85,13 @@ class GroupMeBot extends Adapter
       bot = (bot for bot in bots when bot.bot_id == @bot_id)[0]
       @robot.name = bot.name
 
-    @newest_timestamp = 0
+    @message_count = 0
 
     @timer = setInterval =>
       @getMessages @room_id, (response) =>
-        messages = response.messages.sort (a, b) ->
-          -1 if a.created_at < b.created_at
-          1 if a.created_at > b.created_at
-          0
-
-        # this is a hack, but basically, just assume we get messages in linear time
-        # I don't want to RE GroupMe's web push API right now.
-        for msg in messages
-          if msg.created_at <= @newest_timestamp
-            continue
-
-          @newest_timestamp = msg.created_at
+        if response.count > @message_count
+          @message_count = response.count
+          msg = response.messages[0]
 
           # note that the name assigned to your robot in GroupMe must exactly match the name passed to Hubot
           if msg.text and (msg.created_at * 1000) > new Date().getTime() - 6*1000 and msg.name != @robot.name
